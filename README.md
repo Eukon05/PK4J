@@ -17,15 +17,15 @@ applications.
 - Login to EHMS and retrieve a `Student` object containing your EHMS session:
 
 ```java 
-Student student=PK4J.authenticate(yourlogin,yourpassword);
+Student student = PK4J.authenticate(yourlogin,yourpassword);
 ```
 
 - From the `Student` object, you can make calls to EHMS, for example, you can retrieve all of your announcements:
 
 ```java
-List<Announcement> announcements=student.getAnnouncements();
+List<Announcement> announcements = student.getAnnouncements();
 
-        announcements.forEach(System.out::println);
+announcements.forEach(System.out::println);
 ```
 
 ## Credits
