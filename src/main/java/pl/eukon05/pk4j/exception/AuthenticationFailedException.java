@@ -1,4 +1,4 @@
-package pl.eukon05.pk4j;
+package pl.eukon05.pk4j.exception;
 
 public class AuthenticationFailedException extends Exception {
     public AuthenticationFailedException() {

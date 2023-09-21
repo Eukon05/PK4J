@@ -1,16 +1,18 @@
-package pl.eukon05.pk4j;
+package pl.eukon05.pk4j.core;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import pl.eukon05.pk4j.exception.AuthenticationFailedException;
+import pl.eukon05.pk4j.model.Announcement;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static pl.eukon05.pk4j.PK4J.BASE_URL;
+import static pl.eukon05.pk4j.core.PK4J.BASE_URL;
 
 public class Student {
     private final Map<String, String> cookies;

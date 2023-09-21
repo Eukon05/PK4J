@@ -1,9 +1,10 @@
-package pl.eukon05.pk4j;
+package pl.eukon05.pk4j.core;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import pl.eukon05.pk4j.exception.AuthenticationFailedException;
 
 import java.io.IOException;
 import java.util.HashMap;

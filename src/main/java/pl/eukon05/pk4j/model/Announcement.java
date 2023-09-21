@@ -1,4 +1,4 @@
-package pl.eukon05.pk4j;
+package pl.eukon05.pk4j.model;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
