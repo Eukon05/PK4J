@@ -11,7 +11,6 @@ import pl.eukon05.pk4j.exception.RateLimitExceededException;
 import pl.eukon05.pk4j.exception.UserAlreadyLoggedInException;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 class EHMSWebClient {
@@ -22,8 +21,8 @@ class EHMSWebClient {
     private static final Logger logger = LoggerFactory.getLogger(EHMSWebClient.class);
 
     static Document getRequest(EHMSUrl url, EHMSUser user) throws IOException {
-        logger.debug("Trying to retrieve data from {} for user {} ...", url.value(), user.getLogin());
-        Connection.Response response = Jsoup.connect(url.value()).cookies(user.getCookies()).execute();
+        logger.debug("Trying to retrieve data from {} for user {} ...", url.value(), user.login);
+        Connection.Response response = Jsoup.connect(url.value()).cookies(user.cookies).execute();
 
         if (response.statusCode() != 200) {
             logger.error("EHMS returned an unexpected status code: {}", response.statusCode());
@@ -33,12 +32,12 @@ class EHMSWebClient {
         Document responseBody = response.parse();
 
         if (!responseBody.getElementsContainingText(AUTH_CHECK).isEmpty()) {
-            logger.debug("User {} didn't have an active session, trying to log in...", user.getLogin());
+            logger.debug("User {} didn't have an active session, trying to log in...", user.login);
             login(user);
             return getRequest(url, user);
         }
 
-        logger.debug("Successfully retrieved data from {}, for user {}", url.value(), user.getLogin());
+        logger.debug("Successfully retrieved data from {}, for user {}", url.value(), user.login);
         return responseBody;
     }
 
@@ -62,30 +61,25 @@ class EHMSWebClient {
         String passForm = inputs.get(1).attr("name");
         String counter = document.select("input[type=hidden]").get(1).val();
 
-        Map<String, String> data = new HashMap<>();
+        Map<String, String> data = Map.of(loginForm, user.login, passForm, user.password, "log_form", "yes", "counter", counter);
 
-        data.put(loginForm, user.getLogin());
-        data.put(passForm, user.getPassword());
-        data.put("log_form", "yes");
-        data.put("counter", counter);
-
-        logger.debug("Trying to log in as user {} ...", user.getLogin());
+        logger.debug("Trying to log in as user {} ...", user.login);
 
         Document result = Jsoup.connect(EHMSUrl.BASE.value()).data(data).cookies(cookies).post();
 
         if (result.getElementsContainingText(AUTH_CHECK).isEmpty()) {
-            logger.debug("Successfully logged in as user {}", user.getLogin());
-            user.setCookies(cookies);
+            logger.debug("Successfully logged in as user {}", user.login);
+            user.cookies = cookies;
         } else {
             if (!result.getElementsContainingText("Przepisz kod z obrazka").isEmpty()) {
-                logger.warn("User {} got rate-limited! Please wait or solve the captcha on a different device before trying to log in again!", user.getLogin());
-                throw new RateLimitExceededException(user.getLogin());
+                logger.warn("User {} got rate-limited! Please wait or solve the captcha on a different device before trying to log in again!", user.login);
+                throw new RateLimitExceededException(user.login);
             } else if (!result.getElementsContainingText("Wykryto podwójne zalogowanie").isEmpty()) {
-                logger.warn("User {} is already logged in on another device! Please logout from other devices before trying to log in again!", user.getLogin());
-                throw new UserAlreadyLoggedInException(user.getLogin());
+                logger.warn("User {} is already logged in on another device! Please logout from other devices before trying to log in again!", user.login);
+                throw new UserAlreadyLoggedInException(user.login);
             } else {
-                logger.warn("Authentication for user {} failed, are the login details correct?", user.getLogin());
-                throw new IllegalArgumentException(String.format("Authentication failed for user %s, are the login details correct?", user.getLogin()));
+                logger.warn("Authentication for user {} failed, are the login details correct?", user.login);
+                throw new IllegalArgumentException(String.format("Authentication failed for user %s, are the login details correct?", user.login));
             }
         }
     }

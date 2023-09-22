@@ -1,55 +1,32 @@
 package pl.eukon05.pk4j.model;
 
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class Announcement {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
-    private final long id;
-    private final String title;
-    private final String content;
-    private final String priority;
-    private final String author;
-    private final LocalDateTime lastModified;
+public record Announcement(long id, String title, String content, String priority, String author,
+                           LocalDateTime lastModified) {
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
-    public Announcement(long id, String title, String content, String priority, String author, String lastModified) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.priority = priority;
-        this.author = author;
-        this.lastModified = LocalDateTime.parse(lastModified, FORMATTER);
+    public static Announcement fromElement(Element element) {
+        long id;
+        String title;
+        String content;
+        String priority;
+        String author;
+        LocalDateTime lastModified;
+
+        id = Long.parseLong(element.attr("onclick").replaceAll("\\D", ""));
+        Elements rows = element.select("td");
+        title = rows.get(1).text();
+        content = rows.get(2).select("span").get(0).attr("title");
+        priority = rows.get(4).text();
+        author = rows.get(5).text();
+        lastModified = LocalDateTime.parse(rows.get(6).text(), DATE_TIME_FORMATTER);
+
+        return new Announcement(id, title, content, priority, author, lastModified);
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public LocalDateTime getLastModified() {
-        return lastModified;
-    }
-
-    @Override
-    public String toString() {
-        return "Announcement{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                ", priority='" + priority + '\'' +
-                ", author='" + author + '\'' +
-                ", lastModified=" + lastModified +
-                '}';
-    }
 }
