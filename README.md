@@ -1,6 +1,6 @@
 # Politechnika4J (PK4J)
 
-PK4J is a Java 8 library, that allows you to retrieve information from Cracow University Of Technology's e-management
+PK4J is a Java 17 library, that allows you to retrieve information from Cracow University Of Technology's e-management
 system (EHMS).
 
 This library is currently in very early stages of development, so expect things to break and features to be missing.  
