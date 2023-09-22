@@ -3,7 +3,8 @@
 PK4J is a Java 8 library, that allows you to retrieve information from Cracow University Of Technology's e-management
 system (EHMS).
 
-This library is currently in very early stages of development, so expect things to break and features to be missing.
+This library is currently in very early stages of development, so expect things to break and features to be missing.  
+Everything on this page is subject to change, as the library evolves.
 
 PK4J is, essentially, a web-scraper, that wraps information gathered from EHMS into Java objects, for use in other
 applications.
@@ -12,24 +13,17 @@ applications.
 
 - Retrieving announcements from EHMS
 
-## Usage (subject to change)
+## Usage
 
-- Login to EHMS and retrieve a `Student` object containing your EHMS session:
+- Create a new `EHMSUser` object to create a session in EHMS:  
+  `EHMSUser user = new EHMSUser(yourlogin, yourpassword)`
 
-```java 
-Student student = PK4J.authenticate(yourlogin,yourpassword);
-```
-
-- From the `Student` object, you can make calls to EHMS, for example, you can retrieve all of your announcements:
-
-```java
-List<Announcement> announcements = student.getAnnouncements();
-
-announcements.forEach(System.out::println);
-```
+- Use `PK4J` class with your `user` object to perform requests to EHMS. This example shows how to retrieve announcements
+  from EHMS:  
+  `List<Announcement> announcements = PK4J.getAnnouncements(user)`
 
 ## Credits
 
-This project is made possible thanks to the JSoup team and their html parser.
+This project is made possible thanks to the JSoup team and their html parser.  
 Special thanks to [PIayer69 and his ehmsChecker project](https://github.com/PIayer69/ehmsChecker). Without it, I would
-probably still be wondering how to properly scrape data from EHMS.
+probably still be wondering how to properly scrape data from EHMS ;)

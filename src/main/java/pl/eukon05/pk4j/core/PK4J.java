@@ -1,47 +1,42 @@
 package pl.eukon05.pk4j.core;
 
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import pl.eukon05.pk4j.exception.AuthenticationFailedException;
+import pl.eukon05.pk4j.model.Announcement;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class PK4J {
     private PK4J() {
     }
 
-    public static final String BASE_URL = "https://ehms.pk.edu.pl/standard/";
-    private static final String AUTH_CHECK = "Logowanie do systemu";
+    public static List<Announcement> getAnnouncements(EHMSUser user) throws IOException {
+        Document doc = EHMSWebClient.getRequest(EHMSUrl.BASE, user);
+        Elements announcements = doc.selectXpath("//*[@id=\"content\"]/div/div[2]/div/div[2]/table/tbody").select("tr");
 
-    public static Student authenticate(String login, String password) throws IOException, AuthenticationFailedException {
-        Connection.Response res = Jsoup.connect(BASE_URL).execute();
-        Document doc = res.parse();
+        List<Announcement> result = new ArrayList<>();
+        String title;
+        String content;
+        String priority;
+        String author;
+        String lastModified;
+        Announcement announcement;
 
-        Map<String, String> cookies = res.cookies();
+        for (Element e : announcements) {
+            Elements rows = e.select("td");
+            title = rows.get(1).text();
+            content = rows.get(2).select("span").get(0).attr("title");
+            priority = rows.get(4).text();
+            author = rows.get(5).text();
+            lastModified = rows.get(6).text();
 
-        Elements inputs = doc.getElementsByClass("form-control");
+            announcement = new Announcement(title, content, priority, author, lastModified);
+            result.add(announcement);
+        }
 
-        String loginForm = inputs.get(0).attr("name");
-        String passForm = inputs.get(1).attr("name");
-        String counter = doc.select("input[type=hidden]").get(1).val();
-
-        Map<String, String> data = new HashMap<>();
-        data.put(loginForm, login);
-        data.put(passForm, password);
-        data.put("log_form", "yes");
-        data.put("counter", counter);
-
-        if (Jsoup.connect(BASE_URL).data(data).cookies(cookies).post().getElementsContainingText(AUTH_CHECK).isEmpty()) {
-            return new Student(cookies);
-        } else
-            throw new AuthenticationFailedException();
-    }
-
-    public static boolean checkAuthentication(Map<String, String> cookies) throws IOException {
-        return Jsoup.connect(BASE_URL).cookies(cookies).get().getElementsContainingText(AUTH_CHECK).isEmpty();
+        return result;
     }
 }
