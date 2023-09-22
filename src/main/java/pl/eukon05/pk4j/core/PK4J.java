@@ -18,6 +18,7 @@ public final class PK4J {
         Elements announcements = doc.selectXpath("//*[@id=\"content\"]/div/div[2]/div/div[2]/table/tbody").select("tr");
 
         List<Announcement> result = new ArrayList<>();
+        long id;
         String title;
         String content;
         String priority;
@@ -26,6 +27,7 @@ public final class PK4J {
         Announcement announcement;
 
         for (Element e : announcements) {
+            id = Long.parseLong(e.attr("onclick").replaceAll("\\D", ""));
             Elements rows = e.select("td");
             title = rows.get(1).text();
             content = rows.get(2).select("span").get(0).attr("title");
@@ -33,7 +35,7 @@ public final class PK4J {
             author = rows.get(5).text();
             lastModified = rows.get(6).text();
 
-            announcement = new Announcement(title, content, priority, author, lastModified);
+            announcement = new Announcement(id, title, content, priority, author, lastModified);
             result.add(announcement);
         }
 

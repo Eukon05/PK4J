@@ -4,13 +4,13 @@ enum EHMSUrl {
     BASE("https://ehms.pk.edu.pl/standard/"),
     PERSONAL_INFO("https://ehms.pk.edu.pl/standard/?tab=2");
 
-    private final String url;
+    private final String value;
 
-    EHMSUrl(String url) {
-        this.url = url;
+    EHMSUrl(String value) {
+        this.value = value;
     }
 
-    public String get() {
-        return this.url;
+    public String value() {
+        return this.value;
     }
 }
