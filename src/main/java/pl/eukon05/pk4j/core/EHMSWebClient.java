@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.eukon05.pk4j.exception.EHMSException;
 import pl.eukon05.pk4j.exception.RateLimitExceededException;
-import pl.eukon05.pk4j.exception.UserAlreadyLoggedInException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -19,7 +18,6 @@ class EHMSWebClient {
 
     private static final String NOT_LOGGED_IN = "Logowanie do systemu";
     private static final String RATE_LIMITED = "Przepisz kod z obrazka";
-    private static final String ALREADY_LOGGED_IN = "Wykryto podwójne zalogowanie";
     private static final Logger LOGGER = LoggerFactory.getLogger(EHMSWebClient.class);
 
     static Document getRequest(EHMSUrl url, EHMSUser user) throws IOException {
@@ -76,9 +74,6 @@ class EHMSWebClient {
             if (!result.getElementsContainingText(RATE_LIMITED).isEmpty()) {
                 LOGGER.warn("User {} got rate-limited! Please wait or solve the captcha on a different device before trying to log in again!", user.login);
                 throw new RateLimitExceededException(user.login);
-            } else if (!result.getElementsContainingText(ALREADY_LOGGED_IN).isEmpty()) {
-                LOGGER.warn("User {} is already logged in on another device! Please logout from other devices before trying to log in again!", user.login);
-                throw new UserAlreadyLoggedInException(user.login);
             } else {
                 LOGGER.warn("Authentication for user {} failed, are the login details correct?", user.login);
                 throw new IllegalArgumentException(String.format("Authentication failed for user %s, are the login details correct?", user.login));
