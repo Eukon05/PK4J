@@ -8,8 +8,12 @@ public class EHMSUser {
     final String password;
     Map<String, String> cookies = Collections.emptyMap();
 
-    public EHMSUser(String login, String password) {
+    private EHMSUser(String login, String password) {
         this.login = login;
         this.password = password;
+    }
+
+    public static EHMSUser fromCredentials(String login, String password) {
+        return new EHMSUser(login, password);
     }
 }

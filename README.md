@@ -16,7 +16,7 @@ applications.
 ## Usage
 
 - Create a new `EHMSUser` object to create a session in EHMS:  
-  `EHMSUser user = new EHMSUser(yourlogin, yourpassword)`
+  `EHMSUser user = EHMSUser.fromCredentials(yourlogin, yourpassword)`
 
 - Use `PK4J` class with your `user` object to perform requests to EHMS. This example shows how to retrieve announcements
   from EHMS:  
