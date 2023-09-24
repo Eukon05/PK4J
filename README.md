@@ -1,5 +1,7 @@
 # Politechnika4J (PK4J)
 
+[![](https://jitpack.io/v/Eukon05/Politechnika4J.svg)](https://jitpack.io/#Eukon05/Politechnika4J)
+
 PK4J is a Java 17 library, that allows you to retrieve information from Cracow University Of Technology's e-management
 system (EHMS).
 
