@@ -14,7 +14,12 @@ public record Announcement(long id, String title, String content, String priorit
         long id = Long.parseLong(element.attr("onclick").replaceAll("\\D", ""));
         Elements rows = element.select("td");
         String title = rows.get(1).text();
-        String content = rows.get(2).select("span").get(0).attr("title");
+
+        Element contentNode = rows.get(2);
+        Elements contentSpanSelect = contentNode.select("span");
+
+        String content = contentSpanSelect.isEmpty() ? contentNode.text() : contentSpanSelect.get(0).attr("title");
+
         String priority = rows.get(4).text();
         String author = rows.get(5).text();
         LocalDateTime lastModified = LocalDateTime.parse(rows.get(6).text(), DATE_TIME_FORMATTER);
