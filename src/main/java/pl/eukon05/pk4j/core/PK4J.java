@@ -9,16 +9,9 @@ import java.util.List;
 
 public interface PK4J {
     List<Announcement> getAnnouncements(EHMSUser user) throws IOException;
-
     UserDetails getUserDetails(EHMSUser user) throws IOException;
 
     static PK4J getInstance() {
-        return new ScraperPK4J();
+        return ScraperPK4J.getInstance();
     }
-
-    /* Not yet implemented
-    static PK4J getInstance(boolean useApi){
-        return useApi ? null : new ScraperPK4J();
-    }
-     */
 }

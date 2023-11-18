@@ -13,11 +13,22 @@ import java.util.List;
 import java.util.Objects;
 
 public final class ScraperPK4J implements PK4J {
-    private final ElementToModelMapper mapper = new ElementToModelMapper();
+    private static final ScraperPK4J INSTANCE = new ScraperPK4J(new ScraperEHMSWebClient(), new ElementToModelMapper());
+    private final ElementToModelMapper mapper;
+    private final ScraperEHMSWebClient client;
+
+    private ScraperPK4J(ScraperEHMSWebClient ehmsWebClient, ElementToModelMapper mapper) {
+        this.client = ehmsWebClient;
+        this.mapper = mapper;
+    }
+
+    public static ScraperPK4J getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public List<Announcement> getAnnouncements(EHMSUser user) throws IOException {
-        Document doc = ScraperEHMSWebClient.getRequest(ScraperEHMSUrl.BASE, user);
+        Document doc = client.getRequest(ScraperEHMSUrl.BASE, user);
         Elements announcements = doc.selectXpath("//*[@id=\"content\"]/div/div[2]/div/div[2]/table/tbody").select("tr");
 
         return announcements.stream().map(mapper::announcementFromElement).sorted(Comparator.comparing(Announcement::lastModified).reversed()).toList();
@@ -25,7 +36,7 @@ public final class ScraperPK4J implements PK4J {
 
     @Override
     public UserDetails getUserDetails(EHMSUser user) throws IOException {
-        Document doc = ScraperEHMSWebClient.getRequest(ScraperEHMSUrl.USER_DETAILS, user);
+        Document doc = client.getRequest(ScraperEHMSUrl.USER_DETAILS, user);
         return mapper.userDetailsFromElement(Objects.requireNonNull(doc.select("#content > div > div.p-3").first()));
     }
 }
