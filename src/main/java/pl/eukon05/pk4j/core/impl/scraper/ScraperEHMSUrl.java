@@ -1,12 +1,12 @@
-package pl.eukon05.pk4j.core;
+package pl.eukon05.pk4j.core.impl.scraper;
 
-enum EHMSUrl {
+enum ScraperEHMSUrl {
     BASE("https://ehms.pk.edu.pl/standard/"),
     USER_DETAILS("https://ehms.pk.edu.pl/standard/?tab=2");
 
     private final String value;
 
-    EHMSUrl(String value) {
+    ScraperEHMSUrl(String value) {
         this.value = value;
     }
 

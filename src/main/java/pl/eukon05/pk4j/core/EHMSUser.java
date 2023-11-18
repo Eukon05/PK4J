@@ -1,25 +1,40 @@
 package pl.eukon05.pk4j.core;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Optional;
 
 public class EHMSUser {
-    final String login;
-    final String password;
-    Map<String, String> cookies = Collections.emptyMap();
+    private final String username;
+    private final String password;
+    private String sessionToken;
 
-    private EHMSUser(String login, String password) {
-        if (login == null || password == null)
+    private EHMSUser(String username, String password) {
+        if (username == null || password == null)
             throw new NullPointerException();
 
-        if (login.isBlank() || password.isBlank())
+        if (username.isBlank() || password.isBlank())
             throw new IllegalArgumentException("Credentials cannot be empty strings!");
 
-        this.login = login;
+        this.username = username;
         this.password = password;
     }
 
-    public static EHMSUser fromCredentials(String login, String password) {
-        return new EHMSUser(login, password);
+    public static EHMSUser fromCredentials(String username, String password) {
+        return new EHMSUser(username, password);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public Optional<String> getSessionToken() {
+        return Optional.ofNullable(sessionToken);
+    }
+
+    public void setSessionToken(String sessionToken) {
+        this.sessionToken = sessionToken;
     }
 }
