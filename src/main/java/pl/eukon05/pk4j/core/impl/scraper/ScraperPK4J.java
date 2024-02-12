@@ -28,7 +28,7 @@ public final class ScraperPK4J implements PK4J {
 
     @Override
     public List<Announcement> getAnnouncements(EHMSUser user) throws IOException {
-        Document doc = client.getRequest(ScraperEHMSUrl.BASE, user);
+        Document doc = client.getRequest(user, ScraperEHMSUrl.BASE);
         Elements announcements = doc.selectXpath("//*[@id=\"content\"]/div/div[2]/div/div[2]/table/tbody").select("tr");
 
         return announcements.stream().map(mapper::announcementFromElement).sorted(Comparator.comparing(Announcement::lastModified).reversed()).toList();
@@ -36,7 +36,7 @@ public final class ScraperPK4J implements PK4J {
 
     @Override
     public UserDetails getUserDetails(EHMSUser user) throws IOException {
-        Document doc = client.getRequest(ScraperEHMSUrl.USER_DETAILS, user);
+        Document doc = client.getRequest(user, ScraperEHMSUrl.USER_DETAILS);
         return mapper.userDetailsFromElement(Objects.requireNonNull(doc.select("#content > div > div.p-3").first()));
     }
 }

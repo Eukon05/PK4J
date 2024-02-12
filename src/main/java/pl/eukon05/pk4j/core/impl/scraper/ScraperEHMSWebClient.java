@@ -20,11 +20,22 @@ class ScraperEHMSWebClient {
 
     private final Logger logger = LoggerFactory.getLogger(ScraperEHMSWebClient.class);
 
-    Document getRequest(ScraperEHMSUrl url, EHMSUser user) throws IOException {
+    Document getRequest(EHMSUser user, ScraperEHMSUrl url) throws IOException {
         if (user.getSessionToken().isEmpty()) {
             logger.debug("User {} didn't have a session token attached, trying to log in...", user.getUsername());
             login(user);
-            return getRequest(url, user);
+            return getRequest(user, url);
+        }
+
+        if (user.getStudyID().isPresent() || user.getUserID().isPresent()) {
+            logger.warn("""
+                    User {} was previously logged in via a different PK4J implementation.
+                    Please, DO NOT reuse the same user object across different implementations of PK4J, to avoid unnecessary logins.
+                    Trying to log in..""", user.getUsername());
+            user.setUserID(null);
+            user.setStudyID(null);
+            login(user);
+            return getRequest(user, url);
         }
 
         logger.debug("Trying to retrieve data from {} for user {} ...", url.value(), user.getUsername());
@@ -37,7 +48,7 @@ class ScraperEHMSWebClient {
         if (!responseBody.getElementsContainingText(NOT_LOGGED_IN).isEmpty()) {
             logger.debug("User {}'s session token was inactive, trying to log back in...", user.getUsername());
             login(user);
-            return getRequest(url, user);
+            return getRequest(user, url);
         }
 
         logger.debug("Successfully retrieved data from {}, for user {}", url.value(), user.getUsername());

@@ -4,7 +4,9 @@ import java.util.Optional;
 
 public class EHMSUser {
     private final String username;
+    private String userID;
     private final String password;
+    private String studyID;
     private String sessionToken;
 
     private EHMSUser(String username, String password) {
@@ -28,6 +30,22 @@ public class EHMSUser {
 
     public String getPassword() {
         return password;
+    }
+
+    public Optional<String> getUserID() {
+        return Optional.ofNullable(userID);
+    }
+
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
+
+    public Optional<String> getStudyID() {
+        return Optional.ofNullable(studyID);
+    }
+
+    public void setStudyID(String studyID) {
+        this.studyID = studyID;
     }
 
     public Optional<String> getSessionToken() {
