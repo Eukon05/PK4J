@@ -1,62 +1,73 @@
 package pl.eukon05.pk4j.core.impl.scraper;
 
+import com.google.gson.JsonObject;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.eukon05.pk4j.core.EHMSUrlEnum;
 import pl.eukon05.pk4j.core.EHMSUser;
+import pl.eukon05.pk4j.core.EHMSUserSession;
+import pl.eukon05.pk4j.core.EHMSWebClient;
 import pl.eukon05.pk4j.exception.EHMSException;
+import pl.eukon05.pk4j.exception.EHMSExpiredTokenException;
+import pl.eukon05.pk4j.exception.InvalidCredentialsException;
 import pl.eukon05.pk4j.exception.RateLimitExceededException;
 
 import java.io.IOException;
 import java.util.Map;
 
-class ScraperEHMSWebClient {
+final class ScraperEHMSWebClient implements EHMSWebClient {
     private static final String NOT_LOGGED_IN = "Logowanie do systemu";
     private static final String RATE_LIMITED = "Przepisz kod z obrazka";
     private static final String PHP_SESS_ID = "dsysPHPSESSID";
 
     private final Logger logger = LoggerFactory.getLogger(ScraperEHMSWebClient.class);
 
-    Document getRequest(EHMSUser user, ScraperEHMSUrl url) throws IOException {
-        if (user.getSessionToken().isEmpty()) {
-            logger.debug("User {} didn't have a session token attached, trying to log in...", user.getUsername());
-            login(user);
-            return getRequest(user, url);
+    public JsonObject getRequest(EHMSUserSession session, EHMSUrlEnum url) throws IOException {
+        String value;
+        if (url instanceof ScraperEHMSUrl scraperEHMSUrl)
+            value = scraperEHMSUrl.value();
+        else {
+            logger.error("Using URLs from other PK4J implementations is unsupported!");
+            throw new IllegalArgumentException("url must be an instance of ScraperEHMSUrl");
         }
 
-        if (user.getStudyID().isPresent() || user.getUserID().isPresent()) {
-            logger.warn("""
-                    User {} was previously logged in via a different PK4J implementation.
-                    Please, DO NOT reuse the same user object across different implementations of PK4J, to avoid unnecessary logins.
-                    Trying to log in..""", user.getUsername());
-            user.setUserID(null);
-            user.setStudyID(null);
-            login(user);
-            return getRequest(user, url);
+        if(session instanceof ScraperUserSession) {
+            logger.debug("Trying to retrieve data from {}", value);
+            Connection.Response response = Jsoup.connect(value).cookie(PHP_SESS_ID, session.getSessionToken()).execute();
+
+            checkStatusCode(response);
+
+            Document responseBody = response.parse();
+
+            if (!responseBody.getElementsContainingText(NOT_LOGGED_IN).isEmpty()) {
+                logger.debug("Unable to retrieve data from {}, session expired", value);
+                throw new EHMSExpiredTokenException();
+            }
+
+            logger.debug("Successfully retrieved data from {}", value);
+
+            JsonObject returnVal = new JsonObject();
+            returnVal.addProperty("Document", responseBody.html());
+            return returnVal;
         }
-
-        logger.debug("Trying to retrieve data from {} for user {} ...", url.value(), user.getUsername());
-        Connection.Response response = Jsoup.connect(url.value()).cookie(PHP_SESS_ID, user.getSessionToken().get()).execute();
-
-        checkStatusCode(response);
-
-        Document responseBody = response.parse();
-
-        if (!responseBody.getElementsContainingText(NOT_LOGGED_IN).isEmpty()) {
-            logger.debug("User {}'s session token was inactive, trying to log back in...", user.getUsername());
-            login(user);
-            return getRequest(user, url);
+        else {
+            logger.error("Using a session object from other PK4J implementations is unsupported!");
+            throw new IllegalArgumentException("session must be an instance of ScraperUserSession");
         }
-
-        logger.debug("Successfully retrieved data from {}, for user {}", url.value(), user.getUsername());
-        return responseBody;
     }
 
-    private void login(EHMSUser user) throws IOException {
-        logger.debug("Trying to retrieve a login form from EHMS...");
+    // Not used in the current implementation
+    @Override
+    public JsonObject getRequest(EHMSUserSession session, EHMSUrlEnum url, long resourceID) throws IOException {
+        return getRequest(session, url);
+    }
+
+    public EHMSUserSession login(EHMSUser user) throws IOException {
+        logger.debug("Trying to retrieve a login form from EHMS");
         Connection.Response response = Jsoup.connect(ScraperEHMSUrl.BASE.value()).execute();
 
         checkStatusCode(response);
@@ -67,7 +78,7 @@ class ScraperEHMSWebClient {
         Map<String, String> cookies = response.cookies();
         Map<String, String> formData = prepareLoginFormData(responseBody, user.getUsername(), user.getPassword());
 
-        logger.debug("Trying to log in as user {} ...", user.getUsername());
+        logger.debug("Trying to log in as user \"{}\"", user.getUsername());
 
         Connection.Response loginResponse = Jsoup.connect(ScraperEHMSUrl.BASE.value()).data(formData).cookies(cookies).method(Connection.Method.POST).execute();
         checkStatusCode(loginResponse);
@@ -75,15 +86,15 @@ class ScraperEHMSWebClient {
         Document loginResponseBody = loginResponse.parse();
 
         if (loginResponseBody.getElementsContainingText(NOT_LOGGED_IN).isEmpty()) {
-            logger.debug("Successfully logged in as user {}", user.getUsername());
-            user.setSessionToken(cookies.get(PHP_SESS_ID));
+            logger.debug("Successfully logged in as user \"{}\"", user.getUsername());
+            return new ScraperUserSession(cookies.get(PHP_SESS_ID));
         } else {
             if (!loginResponseBody.getElementsContainingText(RATE_LIMITED).isEmpty()) {
-                logger.warn("User {} got rate-limited! Please wait or solve the captcha on a different device before trying to log in again!", user.getUsername());
+                logger.warn("User \"{}\" got rate-limited! Please wait or solve the captcha on a different device before trying to log in again!", user.getUsername());
                 throw new RateLimitExceededException(user.getUsername());
             } else {
-                logger.warn("Authentication for user {} failed, are the login details correct?", user.getUsername());
-                throw new IllegalArgumentException(String.format("Authentication failed for user %s, are the login details correct?", user.getUsername()));
+                logger.warn("Authentication for user \"{}\" failed, are the login details correct?", user.getUsername());
+                throw new InvalidCredentialsException(user.getUsername());
             }
         }
     }
