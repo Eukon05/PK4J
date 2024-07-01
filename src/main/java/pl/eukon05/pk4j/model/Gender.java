@@ -4,6 +4,6 @@ public enum Gender {
     FEMALE, MALE;
 
     public static Gender fromString(String value) {
-        return value.equals("Kobieta") ? FEMALE : MALE;
+        return value.equalsIgnoreCase("kobieta") ? FEMALE : MALE;
     }
 }

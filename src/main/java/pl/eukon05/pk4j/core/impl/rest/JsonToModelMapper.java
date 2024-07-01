@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-class JsonToModelMapper {
+final class JsonToModelMapper {
     Announcement announcementFromJson(JsonObject object, long id) {
         return new Announcement(id,
                 object.get("title").getAsString(),

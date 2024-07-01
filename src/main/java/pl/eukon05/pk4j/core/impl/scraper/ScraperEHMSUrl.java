@@ -1,6 +1,8 @@
 package pl.eukon05.pk4j.core.impl.scraper;
 
-enum ScraperEHMSUrl {
+import pl.eukon05.pk4j.core.EHMSUrlEnum;
+
+enum ScraperEHMSUrl implements EHMSUrlEnum {
     BASE("https://ehms.pk.edu.pl/standard/"),
     USER_DETAILS("https://ehms.pk.edu.pl/standard/?tab=2");
 
